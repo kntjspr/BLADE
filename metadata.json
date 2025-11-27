@@ -1,0 +1,5 @@
+{
+  "name": "Sentinel AI: Fraud Detection System",
+  "description": "A real-time fraud detection dashboard that utilizes behavioral heuristics, browser fingerprinting, and IP profiling to score and flag risky web sessions using the Gemini API.",
+  "requestFramePermissions": []
+}
