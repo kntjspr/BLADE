@@ -7,7 +7,7 @@ import cors from 'cors';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const IPQS_API_KEY = 'ZTTwQmjMECTYwZ4YHHEm42iH4tbl7UQZ';
+const IPQS_API_KEY = process.env.IPQS_API_KEY || 'ZTTwQmjMECTYwZ4YHHEm42iH4tbl7UQZ';
 
 app.use(cors());
 app.use(express.json());

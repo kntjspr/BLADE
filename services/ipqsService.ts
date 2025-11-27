@@ -34,7 +34,7 @@ export interface IPQSResult {
 const USE_LOCAL_API = false; // Set to true when running the wrapper API
 const LOCAL_API_URL = 'http://localhost:3001/api/ipqs';
 const CORS_PROXY = 'https://corsproxy.io/?';
-const IPQS_API_KEY = 'ZTTwQmjMECTYwZ4YHHEm42iH4tbl7UQZ';
+const IPQS_API_KEY = import.meta.env.VITE_IPQS_API_KEY || 'ZTTwQmjMECTYwZ4YHHEm42iH4tbl7UQZ';
 
 /**
  * Get IP quality score from IPQS API
