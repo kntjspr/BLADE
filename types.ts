@@ -113,3 +113,21 @@ export enum AppStatus {
   SUCCESS = 'SUCCESS',
   ERROR = 'ERROR',
 }
+
+// Session management types
+export interface Session {
+  id: string;
+  label: string;
+  canvasFingerprint: string;
+  webglFingerprint: string;
+  createdAt: number;
+  lastSeen: number;
+  visitCount: number;
+  notes?: string;
+}
+
+export interface SessionMatch {
+  session: Session;
+  matchType: 'exact' | 'partial';
+  confidence: number;
+}

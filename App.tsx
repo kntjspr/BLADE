@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { DisplayPage } from './components/DisplayPage';
 import { PlaygroundPage } from './components/PlaygroundPage';
 import { CompliancePage } from './components/CompliancePage';
-import { Skull, Eye, FlaskConical, FileText } from 'lucide-react';
+import { SessionManager } from './components/SessionManager';
+import { Skull, Eye, FlaskConical, FileText, Database } from 'lucide-react';
 
-type Page = 'display' | 'playground' | 'compliance';
+
+type Page = 'display' | 'playground' | 'compliance' | 'sessions';
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>('display');
@@ -65,6 +67,16 @@ const App: React.FC = () => {
             <FileText className="w-4 h-4" />
             [ Compliance ]
           </button>
+          <button
+            onClick={() => setCurrentPage('sessions')}
+            className={`py-3 px-6 text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-none border-b-2 ${currentPage === 'sessions'
+              ? 'border-white text-white'
+              : 'border-transparent text-zinc-600 hover:text-zinc-300'
+              }`}
+          >
+            <Database className="w-4 h-4" />
+            [ Sessions ]
+          </button>
         </div>
       </nav>
 
@@ -74,6 +86,8 @@ const App: React.FC = () => {
           <DisplayPage />
         ) : currentPage === 'playground' ? (
           <PlaygroundPage />
+        ) : currentPage === 'sessions' ? (
+          <SessionManager />
         ) : (
           <CompliancePage />
         )}

@@ -1,22 +1,42 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Globe, Fingerprint, Eye, Type, Cpu, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Shield, Globe, Fingerprint, Eye, Type, Cpu, AlertTriangle, CheckCircle, Save, Tag, Clock } from 'lucide-react';
 import { getPublicIP, getCanvasFingerprint } from '../services/fingerprint';
 import { getIPQualityScore } from '../services/ipqsService';
 import { analyzeFonts } from '../utils/fontDetection';
 import { getWebGLFingerprint } from '../utils/webglFingerprint';
 import { detectSeleniumAndHeadless } from '../utils/seleniumDetection';
-import { FingerprintData } from '../types';
+import { FingerprintData, SessionMatch, Session } from '../types';
+import { loadSessions, findMatchingSession, createSession, updateSessionVisit } from '../services/sessionStorage';
 
 export const DisplayPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [fingerprint, setFingerprint] = useState<FingerprintData | null>(null);
+    const [sessionMatch, setSessionMatch] = useState<SessionMatch | null>(null);
+    const [showSaveDialog, setShowSaveDialog] = useState(false);
+    const [sessionLabel, setSessionLabel] = useState('');
+    const [sessions, setSessions] = useState<Session[]>([]);
 
     useEffect(() => {
-        collectFingerprint();
+        // Fetch sessions from database and collect fingerprint
+        fetchSessionsAndCollectFingerprint();
     }, []);
 
-    const collectFingerprint = async () => {
+    const fetchSessionsAndCollectFingerprint = async () => {
         setLoading(true);
+        try {
+            // Fetch all sessions from database first
+            const allSessions = await loadSessions();
+            setSessions(allSessions);
+
+            // Then collect fingerprint and match
+            await collectFingerprint(allSessions);
+        } catch (error) {
+            console.error('Error:', error);
+            setLoading(false);
+        }
+    };
+
+    const collectFingerprint = async (allSessions: Session[]) => {
         try {
             const ip = await getPublicIP();
             const ipqs = await getIPQualityScore(ip);
@@ -25,7 +45,7 @@ export const DisplayPage: React.FC = () => {
             const fonts = await analyzeFonts();
             const selenium = detectSeleniumAndHeadless();
 
-            setFingerprint({
+            const fingerprintData: FingerprintData = {
                 ip,
                 ipqs,
                 canvas,
@@ -33,11 +53,42 @@ export const DisplayPage: React.FC = () => {
                 fonts,
                 selenium,
                 timestamp: Date.now()
-            });
+            };
+
+            setFingerprint(fingerprintData);
+
+            // Automatically check for matching session
+            const match = findMatchingSession(canvas, webgl.hash, allSessions);
+            if (match) {
+                setSessionMatch(match);
+                // Auto-update visit count in background
+                updateSessionVisit(match.session.id);
+            }
         } catch (error) {
             console.error('Error collecting fingerprint:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleSaveSession = async () => {
+        if (!fingerprint || !sessionLabel.trim()) return;
+
+        const newSession = await createSession(
+            sessionLabel.trim(),
+            fingerprint.canvas,
+            fingerprint.webgl.hash
+        );
+
+        if (newSession) {
+            setShowSaveDialog(false);
+            setSessionLabel('');
+
+            // Refresh sessions and check for match
+            const allSessions = await loadSessions();
+            setSessions(allSessions);
+            const match = findMatchingSession(fingerprint.canvas, fingerprint.webgl.hash, allSessions);
+            setSessionMatch(match);
         }
     };
 
@@ -56,6 +107,80 @@ export const DisplayPage: React.FC = () => {
 
     return (
         <div className="space-y-6">
+            {/* Session Match Banner */}
+            {sessionMatch && (
+                <div className={`border p-4 ${sessionMatch.matchType === 'exact'
+                    ? 'bg-green-950 border-green-900'
+                    : 'bg-yellow-950 border-yellow-900'
+                    }`}>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <Tag className={`w-5 h-5 ${sessionMatch.matchType === 'exact' ? 'text-green-500' : 'text-yellow-500'
+                                }`} />
+                            <div>
+                                <div className="text-sm font-bold text-white uppercase tracking-widest">
+                                    Session Matched: {sessionMatch.session.label}
+                                </div>
+                                <div className="text-xs text-zinc-400 mt-1">
+                                    {sessionMatch.matchType === 'exact' ? 'Exact Match' : 'Partial Match'} •
+                                    Confidence: {sessionMatch.confidence}% •
+                                    Visits: {sessionMatch.session.visitCount}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-zinc-500">
+                            <Clock className="w-3 h-3" />
+                            Last seen: {new Date(sessionMatch.session.lastSeen).toLocaleString()}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Save Session Button */}
+            {!sessionMatch && fingerprint && (
+                <div className="bg-zinc-900 border border-zinc-800 p-4">
+                    {!showSaveDialog ? (
+                        <button
+                            onClick={() => setShowSaveDialog(true)}
+                            className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-white hover:text-zinc-300 transition-colors"
+                        >
+                            <Save className="w-4 h-4" />
+                            Save This Session
+                        </button>
+                    ) : (
+                        <div className="space-y-3">
+                            <div className="text-xs text-zinc-500 uppercase tracking-widest">Save Session</div>
+                            <input
+                                type="text"
+                                value={sessionLabel}
+                                onChange={(e) => setSessionLabel(e.target.value)}
+                                placeholder="Enter session label (e.g., 'My Laptop', 'Work PC')..."
+                                className="w-full bg-black border border-zinc-800 text-white px-3 py-2 text-sm focus:outline-none focus:border-white"
+                                autoFocus
+                            />
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={handleSaveSession}
+                                    disabled={!sessionLabel.trim()}
+                                    className="bg-white text-black px-4 py-2 text-xs font-bold uppercase tracking-widest hover:bg-zinc-300 disabled:bg-zinc-700 disabled:text-zinc-500 transition-colors"
+                                >
+                                    Save
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setShowSaveDialog(false);
+                                        setSessionLabel('');
+                                    }}
+                                    className="border border-zinc-800 text-white px-4 py-2 text-xs font-bold uppercase tracking-widest hover:bg-zinc-900 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* IP Address Section */}
             <div className="bg-black border border-zinc-800 p-6">
                 <h2 className="text-sm font-bold text-white uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-zinc-800 pb-2">
