@@ -1,5 +1,5 @@
-// IPQS API service using local wrapper API
-// Make sure to run the wrapper API server (see api/ipqs-wrapper.ts)
+// IPQS API service using Vercel serverless function
+// The API key is securely stored on the backend and never exposed to the client
 
 export interface IPQSResult {
     success: boolean;
@@ -30,32 +30,20 @@ export interface IPQSResult {
     request_id: string;
 }
 
-// Use local wrapper API or fallback to CORS proxy for development
-const USE_LOCAL_API = false; // Set to true when running the wrapper API
-const LOCAL_API_URL = 'http://localhost:3001/api/ipqs';
-const CORS_PROXY = 'https://corsproxy.io/?';
-const IPQS_API_KEY = import.meta.env.VITE_IPQS_API_KEY || 'ZTTwQmjMECTYwZ4YHHEm42iH4tbl7UQZ';
-
 /**
- * Get IP quality score from IPQS API
+ * Get IP quality score from IPQS API via our secure backend endpoint
+ * This prevents exposing the API key to the client
  */
 export async function getIPQualityScore(ip: string): Promise<IPQSResult> {
     try {
-        let url: string;
-
-        if (USE_LOCAL_API) {
-            // Use local wrapper API
-            url = `${LOCAL_API_URL}/${ip}`;
-        } else {
-            // Fallback to CORS proxy for development
-            const apiUrl = `https://ipqualityscore.com/api/json/ip/${IPQS_API_KEY}/${ip}?strictness=1&allow_public_access_points=true`;
-            url = CORS_PROXY + encodeURIComponent(apiUrl);
-        }
+        // Call our Vercel serverless function
+        // This works both locally (vercel dev) and in production
+        const url = `/api/ipqs?ip=${encodeURIComponent(ip)}`;
 
         const response = await fetch(url);
 
         if (!response.ok) {
-            throw new Error(`IPQS API error: ${response.status}`);
+            throw new Error(`API error: ${response.status}`);
         }
 
         const data = await response.json();
@@ -93,3 +81,4 @@ export async function getIPQualityScore(ip: string): Promise<IPQSResult> {
         };
     }
 }
+
