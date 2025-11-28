@@ -112,10 +112,7 @@ export const DisplayPage: React.FC = () => {
                             <span className="text-zinc-600">Organization:</span>
                             <span className="text-zinc-400">{fingerprint.ipqs.organization}</span>
                         </div>
-                        <div className="flex justify-between border-b border-zinc-900 pb-1">
-                            <span className="text-zinc-600">Connection Type:</span>
-                            <span className="text-zinc-400">{fingerprint.ipqs.connection_type}</span>
-                        </div>
+
                         <div className="flex justify-between border-b border-zinc-900 pb-1">
                             <span className="text-zinc-600">Mobile:</span>
                             <span className="text-zinc-400">{fingerprint.ipqs.mobile ? 'Yes' : 'No'}</span>
