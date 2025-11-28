@@ -29,6 +29,38 @@ interface IPQSResponse {
     request_id: string;
 }
 
+/**
+ * Extract the real client IP address from request headers
+ * Vercel provides the client IP in various headers depending on the proxy setup
+ */
+function getClientIP(req: VercelRequest): string | null {
+    // Try to get IP from various headers (in order of preference)
+    const forwarded = req.headers['x-forwarded-for'];
+    const realIP = req.headers['x-real-ip'];
+    const vercelIP = req.headers['x-vercel-forwarded-for'];
+
+    // x-forwarded-for can contain multiple IPs (client, proxy1, proxy2, ...)
+    // The first one is the original client IP
+    if (forwarded) {
+        const ips = Array.isArray(forwarded) ? forwarded[0] : forwarded;
+        const firstIP = ips.split(',')[0].trim();
+        if (firstIP) return firstIP;
+    }
+
+    // x-real-ip contains the direct client IP
+    if (realIP) {
+        return Array.isArray(realIP) ? realIP[0] : realIP;
+    }
+
+    // Vercel-specific header
+    if (vercelIP) {
+        return Array.isArray(vercelIP) ? vercelIP[0] : vercelIP;
+    }
+
+    // Fallback to connection remote address (rarely used in serverless)
+    return null;
+}
+
 export default async function handler(
     req: VercelRequest,
     res: VercelResponse
@@ -42,19 +74,22 @@ export default async function handler(
     }
 
     try {
-        // Get IP from query parameter
-        const { ip } = req.query;
+        // Extract the real client IP from request headers
+        // This CANNOT be manipulated by the client
+        const clientIP = getClientIP(req);
 
-        if (!ip || typeof ip !== 'string') {
+        if (!clientIP) {
+            console.error('Unable to determine client IP address');
             return res.status(400).json({
                 success: false,
-                message: 'IP address is required'
+                message: 'Unable to determine client IP address'
             });
         }
 
         // Validate IP format (basic validation)
         const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
-        if (!ipRegex.test(ip)) {
+        if (!ipRegex.test(clientIP)) {
+            console.error('Invalid IP format detected:', clientIP);
             return res.status(400).json({
                 success: false,
                 message: 'Invalid IP address format'
@@ -72,8 +107,8 @@ export default async function handler(
             });
         }
 
-        // Call IPQS API
-        const ipqsUrl = `https://ipqualityscore.com/api/json/ip/${apiKey}/${ip}?strictness=1&allow_public_access_points=true`;
+        // Call IPQS API with the server-detected client IP
+        const ipqsUrl = `https://ipqualityscore.com/api/json/ip/${apiKey}/${clientIP}?strictness=1&allow_public_access_points=true`;
 
         const response = await fetch(ipqsUrl);
 
@@ -119,3 +154,4 @@ export default async function handler(
         });
     }
 }
+

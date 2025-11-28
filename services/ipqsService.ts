@@ -1,5 +1,6 @@
 // IPQS API service using Vercel serverless function
 // The API key is securely stored on the backend and never exposed to the client
+// The IP address is detected server-side and cannot be manipulated by the client
 
 export interface IPQSResult {
     success: boolean;
@@ -32,13 +33,17 @@ export interface IPQSResult {
 
 /**
  * Get IP quality score from IPQS API via our secure backend endpoint
- * This prevents exposing the API key to the client
+ * The server automatically detects the client's IP address from request headers
+ * This prevents clients from manipulating the IP parameter to abuse the API
+ * 
+ * @deprecated The ip parameter is no longer used - server detects IP automatically
  */
-export async function getIPQualityScore(ip: string): Promise<IPQSResult> {
+export async function getIPQualityScore(_ip?: string): Promise<IPQSResult> {
     try {
         // Call our Vercel serverless function
         // This works both locally (vercel dev) and in production
-        const url = `/api/ipqs?ip=${encodeURIComponent(ip)}`;
+        // No IP parameter needed - server detects it from request headers
+        const url = `/api/ipqs`;
 
         const response = await fetch(url);
 
@@ -81,4 +86,3 @@ export async function getIPQualityScore(ip: string): Promise<IPQSResult> {
         };
     }
 }
-
