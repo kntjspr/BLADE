@@ -196,7 +196,7 @@ export const DisplayPage: React.FC = () => {
             </div>
 
             {/* IPQS Score Section */}
-            {/* {fingerprint.ipqs && fingerprint.ipqs.success && (
+            {fingerprint.ipqs && fingerprint.ipqs.success && (
                 <div className="bg-black border border-zinc-800 p-6">
                     <h2 className="text-sm font-bold text-white uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-zinc-800 pb-2">
                         <Shield className="w-4 h-4" />
@@ -244,7 +244,7 @@ export const DisplayPage: React.FC = () => {
                         </div>
                     </div>
                 </div>
-            )} */}
+            )}
 
             {/* Canvas Fingerprint */}
             <div className="bg-black border border-zinc-800 p-6">
