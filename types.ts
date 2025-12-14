@@ -38,8 +38,10 @@ export interface SeleniumDetection {
   isSelenium: boolean;
   isPhantomJS: boolean;
   isAutomated: boolean;
+  isStealthBot: boolean;
   detectedIndicators: string[];
   riskScore: number;
+  detectionMethods: string[];
 }
 
 // IPQS API result types
