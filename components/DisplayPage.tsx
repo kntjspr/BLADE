@@ -196,7 +196,7 @@ export const DisplayPage: React.FC = () => {
             </div>
 
             {/* IPQS Score Section */}
-            {fingerprint.ipqs && fingerprint.ipqs.success && (
+            {/* {fingerprint.ipqs && fingerprint.ipqs.success && (
                 <div className="bg-black border border-zinc-800 p-6">
                     <h2 className="text-sm font-bold text-white uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-zinc-800 pb-2">
                         <Shield className="w-4 h-4" />
@@ -244,7 +244,7 @@ export const DisplayPage: React.FC = () => {
                         </div>
                     </div>
                 </div>
-            )}
+            )} */}
 
             {/* Canvas Fingerprint */}
             <div className="bg-black border border-zinc-800 p-6">
@@ -372,31 +372,11 @@ export const DisplayPage: React.FC = () => {
                     Selenium & Headless Detection
                 </h2>
 
-                {/* Stealth Bot Warning Banner */}
-                {fingerprint.selenium.isStealthBot && (
-                    <div className="bg-orange-950 border border-orange-700 p-4 mb-4">
-                        <div className="flex items-center gap-2 text-orange-500 font-bold text-sm mb-2">
-                            <AlertTriangle className="w-5 h-5" />
-                            STEALTH BOT DETECTED
-                        </div>
-                        <div className="text-xs text-orange-400">
-                            This visitor is using evasion techniques to hide automation markers.
-                            BLADE's advanced detection methods have identified attempts to spoof or disable detection signals.
-                        </div>
-                    </div>
-                )}
-
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                     <div className={`border p-3 text-center ${fingerprint.selenium.isAutomated ? 'border-red-500 bg-red-950' : 'border-green-500 bg-green-950'}`}>
                         <div className="text-[10px] text-zinc-600 uppercase mb-1">Automated</div>
                         <div className={`text-sm font-bold ${fingerprint.selenium.isAutomated ? 'text-red-500' : 'text-green-500'}`}>
                             {fingerprint.selenium.isAutomated ? 'YES' : 'NO'}
-                        </div>
-                    </div>
-                    <div className={`border p-3 text-center ${fingerprint.selenium.isStealthBot ? 'border-orange-500 bg-orange-950' : 'border-zinc-800'}`}>
-                        <div className="text-[10px] text-zinc-600 uppercase mb-1">Stealth Bot</div>
-                        <div className={`text-sm font-bold ${fingerprint.selenium.isStealthBot ? 'text-orange-500' : 'text-zinc-400'}`}>
-                            {fingerprint.selenium.isStealthBot ? 'DETECTED' : 'NOT FOUND'}
                         </div>
                     </div>
                     <div className={`border p-3 text-center ${fingerprint.selenium.isSelenium ? 'border-red-500' : 'border-zinc-800'}`}>
@@ -422,40 +402,24 @@ export const DisplayPage: React.FC = () => {
                 <div className="border border-zinc-800 p-4 mb-4">
                     <div className="text-[10px] text-zinc-600 uppercase mb-2">Risk Score</div>
                     <div className="flex items-center gap-4">
-                        <div className={`text-2xl font-bold ${fingerprint.selenium.riskScore > 50 ? 'text-red-500' : fingerprint.selenium.riskScore > 25 ? 'text-orange-500' : 'text-green-500'}`}>
+                        <div className={`text-2xl font-bold ${fingerprint.selenium.riskScore > 50 ? 'text-red-500' : 'text-green-500'}`}>
                             {fingerprint.selenium.riskScore}%
                         </div>
                         <div className="flex-1 bg-zinc-900 h-2 rounded-full overflow-hidden">
                             <div
-                                className={`h-full ${fingerprint.selenium.riskScore > 50 ? 'bg-red-500' : fingerprint.selenium.riskScore > 25 ? 'bg-orange-500' : 'bg-green-500'}`}
+                                className={`h-full ${fingerprint.selenium.riskScore > 50 ? 'bg-red-500' : 'bg-green-500'}`}
                                 style={{ width: `${fingerprint.selenium.riskScore}%` }}
                             />
                         </div>
                     </div>
                 </div>
 
-                {/* Detection Methods That Fired */}
-                {fingerprint.selenium.detectionMethods && fingerprint.selenium.detectionMethods.length > 0 && (
-                    <div className="border border-red-900 bg-red-950/50 p-4 mb-4">
-                        <div className="text-[10px] text-red-400 uppercase mb-2 font-bold">
-                            Active Detection Methods ({fingerprint.selenium.detectionMethods.length})
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                            {fingerprint.selenium.detectionMethods.map((method, idx) => (
-                                <span key={idx} className="text-xs bg-red-900/60 border border-red-700 px-2 py-1 text-red-300">
-                                    {method}
-                                </span>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
                 {fingerprint.selenium.detectedIndicators.length > 0 && (
                     <div className="border border-zinc-800 p-4">
                         <div className="text-[10px] text-zinc-600 uppercase mb-2">
                             Detected Indicators ({fingerprint.selenium.detectedIndicators.length})
                         </div>
-                        <div className="space-y-1 max-h-48 overflow-y-auto">
+                        <div className="space-y-1">
                             {fingerprint.selenium.detectedIndicators.map((indicator, idx) => (
                                 <div key={idx} className="text-xs text-red-400 flex items-center gap-2">
                                     <span className="w-1 h-1 bg-red-500"></span>
