@@ -32,13 +32,9 @@ function detectHeadlessChrome(): { detected: boolean; indicators: string[] } {
         detected = true;
     }
 
-    // Check for chrome object inconsistencies
-    if ((window as any).chrome) {
-        if (!(window as any).chrome.runtime) {
-            indicators.push('chrome.runtime is missing');
-            detected = true;
-        }
-    }
+    // NOTE: chrome.runtime check removed - it's unreliable because chrome.runtime
+    // is only available in Chrome extension contexts, not regular web pages.
+    // All normal Chrome users visiting a website would fail this check.
 
     // Check for missing languages
     if (navigator.languages.length === 0) {
