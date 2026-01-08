@@ -2,34 +2,10 @@
 // The API key is securely stored on the backend and never exposed to the client
 // The IP address is detected server-side and cannot be manipulated by the client
 
-export interface IPQSResult {
-    success: boolean;
-    message: string;
-    fraud_score: number;
-    country_code: string;
-    region: string;
-    city: string;
-    ISP: string;
-    ASN: number;
-    organization: string;
-    is_crawler: boolean;
-    timezone: string;
-    mobile: boolean;
-    host: string;
-    proxy: boolean;
-    vpn: boolean;
-    tor: boolean;
-    active_vpn: boolean;
-    active_tor: boolean;
-    recent_abuse: boolean;
-    bot_status: boolean;
-    connection_type: string;
-    abuse_velocity: string;
-    zip_code: string;
-    latitude: number;
-    longitude: number;
-    request_id: string;
-}
+import { IPQSResult } from '../types';
+
+// Re-export for backward compatibility
+export type { IPQSResult } from '../types';
 
 /**
  * Get IP quality score from IPQS API via our secure backend endpoint

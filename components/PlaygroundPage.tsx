@@ -1,10 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
-import { getPublicIP, getCanvasFingerprint } from '../services/fingerprint';
-import { getIPQualityScore } from '../services/ipqsService';
-import { analyzeFonts } from '../utils/fontDetection';
-import { getWebGLFingerprint } from '../utils/webglFingerprint';
-import { detectSeleniumAndHeadless } from '../utils/seleniumDetection';
+import { collectFingerprint } from '../services/fingerprintCollector';
 import { PlaygroundFormData, PlaygroundResult, FingerprintData } from '../types';
 
 export const PlaygroundPage: React.FC = () => {
@@ -60,23 +56,8 @@ export const PlaygroundPage: React.FC = () => {
         setLoading(true);
 
         try {
-            // Collect fingerprint data
-            const ip = await getPublicIP();
-            const ipqs = await getIPQualityScore(ip);
-            const canvas = getCanvasFingerprint();
-            const webgl = getWebGLFingerprint();
-            const fonts = await analyzeFonts();
-            const selenium = detectSeleniumAndHeadless();
-
-            const fingerprint: FingerprintData = {
-                ip,
-                ipqs,
-                canvas,
-                webgl,
-                fonts,
-                selenium,
-                timestamp: Date.now()
-            };
+            // Collect fingerprint data using centralized service
+            const fingerprint = await collectFingerprint();
 
             // Calculate behavior metrics
             const clickSpeed = calculateClickSpeed();
@@ -85,7 +66,7 @@ export const PlaygroundPage: React.FC = () => {
             // Determine if suspicious
             const suspiciousReasons: string[] = [];
 
-            if (selenium.isAutomated) {
+            if (fingerprint.selenium.isAutomated) {
                 suspiciousReasons.push('Automated browser detected (Selenium/Headless)');
             }
 
@@ -97,14 +78,14 @@ export const PlaygroundPage: React.FC = () => {
                 suspiciousReasons.push(`Form filled too quickly: ${formFillTime}s (suspicious for complete form)`);
             }
 
-            if (ipqs && ipqs.success) {
-                if (ipqs.fraud_score > 75) {
-                    suspiciousReasons.push(`High fraud score: ${ipqs.fraud_score}`);
+            if (fingerprint.ipqs && fingerprint.ipqs.success) {
+                if (fingerprint.ipqs.fraud_score > 75) {
+                    suspiciousReasons.push(`High fraud score: ${fingerprint.ipqs.fraud_score}`);
                 }
-                if (ipqs.proxy || ipqs.vpn) {
+                if (fingerprint.ipqs.proxy || fingerprint.ipqs.vpn) {
                     suspiciousReasons.push('Proxy or VPN detected');
                 }
-                if (ipqs.bot_status) {
+                if (fingerprint.ipqs.bot_status) {
                     suspiciousReasons.push('Bot status flagged by IPQS');
                 }
             }

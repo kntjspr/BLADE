@@ -1,33 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-
-interface IPQSResponse {
-    success: boolean;
-    message: string;
-    fraud_score: number;
-    country_code: string;
-    region: string;
-    city: string;
-    ISP: string;
-    ASN: number;
-    organization: string;
-    is_crawler: boolean;
-    timezone: string;
-    mobile: boolean;
-    host: string;
-    proxy: boolean;
-    vpn: boolean;
-    tor: boolean;
-    active_vpn: boolean;
-    active_tor: boolean;
-    recent_abuse: boolean;
-    bot_status: boolean;
-    connection_type: string;
-    abuse_velocity: string;
-    zip_code: string;
-    latitude: number;
-    longitude: number;
-    request_id: string;
-}
+import type { IPQSResult } from '../types';
 
 /**
  * Extract the real client IP address from request headers
@@ -116,7 +88,7 @@ export default async function handler(
             throw new Error(`IPQS API returned status ${response.status}`);
         }
 
-        const data: IPQSResponse = await response.json();
+        const data: IPQSResult = await response.json();
 
         // Return the IPQS response
         return res.status(200).json(data);

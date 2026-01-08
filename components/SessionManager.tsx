@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Trash2, RefreshCw, Tag, Fingerprint } from 'lucide-react';
 import { Session } from '../types';
 import { loadSessions, deleteSession } from '../services/sessionStorage';
+import { formatDate, truncateHash } from '../utils/formatting';
 
 export const SessionManager: React.FC = () => {
     const [sessions, setSessions] = useState<Session[]>([]);
@@ -27,14 +28,6 @@ export const SessionManager: React.FC = () => {
 
     const handleRefresh = async () => {
         refreshSessions();
-    };
-
-    const formatDate = (timestamp: number) => {
-        return new Date(timestamp).toLocaleString();
-    };
-
-    const truncateHash = (hash: string, length: number = 16) => {
-        return hash.length > length ? `${hash.substring(0, length)}...` : hash;
     };
 
     return (
