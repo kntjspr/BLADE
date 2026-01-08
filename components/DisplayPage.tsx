@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Globe, Fingerprint, Eye, Type, Cpu, AlertTriangle, CheckCircle, Save, Tag, Clock } from 'lucide-react';
-import { getPublicIP, getCanvasFingerprint } from '../services/fingerprint';
-import { getIPQualityScore } from '../services/ipqsService';
-import { analyzeFonts } from '../utils/fontDetection';
-import { getWebGLFingerprint } from '../utils/webglFingerprint';
-import { detectSeleniumAndHeadless } from '../utils/seleniumDetection';
+import { Shield, Globe, Fingerprint, Eye, Type, Cpu, AlertTriangle, Save, Tag, Clock } from 'lucide-react';
+import { collectFingerprint } from '../services/fingerprintCollector';
 import { FingerprintData, SessionMatch, Session } from '../types';
 import { loadSessions, findMatchingSession, createSession, updateSessionVisit } from '../services/sessionStorage';
 
@@ -29,36 +25,21 @@ export const DisplayPage: React.FC = () => {
             setSessions(allSessions);
 
             // Then collect fingerprint and match
-            await collectFingerprint(allSessions);
+            await fetchAndMatchFingerprint(allSessions);
         } catch (error) {
             console.error('Error:', error);
             setLoading(false);
         }
     };
 
-    const collectFingerprint = async (allSessions: Session[]) => {
+    const fetchAndMatchFingerprint = async (allSessions: Session[]) => {
         try {
-            const ip = await getPublicIP();
-            const ipqs = await getIPQualityScore(ip);
-            const canvas = await getCanvasFingerprint();
-            const webgl = getWebGLFingerprint();
-            const fonts = await analyzeFonts();
-            const selenium = detectSeleniumAndHeadless();
-
-            const fingerprintData: FingerprintData = {
-                ip,
-                ipqs,
-                canvas,
-                webgl,
-                fonts,
-                selenium,
-                timestamp: Date.now()
-            };
+            const fingerprintData = await collectFingerprint();
 
             setFingerprint(fingerprintData);
 
             // Automatically check for matching session
-            const match = findMatchingSession(canvas, webgl.hash, allSessions);
+            const match = findMatchingSession(fingerprintData.canvas, fingerprintData.webgl.hash, allSessions);
             if (match) {
                 setSessionMatch(match);
                 // Auto-update visit count in background
